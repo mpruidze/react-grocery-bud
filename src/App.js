@@ -14,38 +14,61 @@ function App() {
     e.preventDefault();
     if (!input) {
       // display alert
+       showAlert(true,'please enter value','danger')
+      
     } else if (input && isEditing) {
-      // deal with alert
+      // deal with edit
+      showAlert(true,'value changed','success')
+      setList(list.map(item => {
+        if(item.id === editID) {
+          return {...item,title:input}
+        }
+        return item
+      })
+      )
+      setInput('')
+      setIsEditing(false)
+      setEditID(null)
     } else {
       // show alert
+      showAlert(true,'item added to the cart','success')
       const newItem = {
         id: new Date().getTime().toString(),
         title: input
       };
       setList([...list, newItem]);
       setInput('')
+      console.log(list);
     }
-
+  
   }
-  const handleChange = (e) => {
-    setInput(e.target.value)
+  const showAlert = (show='false', msg='', type='') => {
+    setAlert({show,msg,type}) // ES6 
   }
   const handleRemove = (index) => {
-    setList(list.filter((inputValue) => inputValue.index !== index))
+    showAlert(true,'item removed', 'danger')
+    setList(list.filter((item) => item.id !== index))
   };
-
+  const handleEdit = (id) => {
+    const specificItem = list.find( item => item.id === id)
+    setIsEditing(true)
+    setEditID(id)
+    setInput(specificItem.title)
+  }
   return (
     <section className='section-center'>
 
       <form className='grocery-form' onSubmit={handleSubmit}>
-        {alert.show && <Alert />}
+        {alert.show && <Alert {...alert} removeAlert={showAlert} list={list} />}
         <h3>grocery bud</h3>
         <div className="form-control">
           <input type="text"
             className='grocery'
             value={input}
             placeholder='e.g. eggs'
-            onChange={handleChange}
+            onChange={(e) => {
+              setInput(e.target.value)
+            }}
           />
           <button type='submit' className="submit-btn">
             {isEditing ? 'edit' : 'submit'}
@@ -54,10 +77,13 @@ function App() {
       </form>
       {list.length > 0 && (
         <div className="grocery-container">
-          <List items={list} />
+          <List items={list} 
+          handleRemove={handleRemove}
+          handleEdit={handleEdit} 
+          setInput={setInput}/>
           <button onClick={() => {
-            setList([]);
-            setInput('')
+            setList([])
+            showAlert(true,'empty list','danger')
           }}
             className='clear-btn'>clear items</button>
         </div>
